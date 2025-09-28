@@ -26,6 +26,16 @@ function base64ToArrayBuffer(base64: string): ArrayBuffer {
   return bytes.buffer;
 }
 
+/**
+ * Verifies the cryptographic signature of a version file using RSA-PKCS1-v1.5 with SHA-256.
+ * This function ensures the integrity and authenticity of the version information by
+ * validating the digital signature against the provided public key.
+ * 
+ * @param cfg - The WALU configuration containing the RSA public key
+ * @param version - The version file object containing hash, version, and signature
+ * @returns Promise that resolves if the signature is valid
+ * @throws {Error} If signature verification fails or any cryptographic operation fails
+ */
 export async function checkIfValidSignature(cfg: WaluConfig, version: IVersionFile): Promise<void> {
   try {
     const publicKeyBuffer = pemToArrayBuffer(cfg.getPublicKey());

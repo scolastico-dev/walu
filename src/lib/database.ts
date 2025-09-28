@@ -1,10 +1,25 @@
+/** The name of the IndexedDB database used by WALU */
 export const DB_NAME = 'walu';
+
+/** The name of the object store used for caching files */
 export const CACHE_STORE = 'cache';
+
+/** The name of the object store used for temporary download chunks */
 export const DOWNLOAD_STORE = 'download';
+
+/** The current version of the IndexedDB database schema */
 export const DB_VERSION = 1;
 
 let dbPromise: Promise<IDBDatabase> | null = null;
 
+/**
+ * Opens a connection to the IndexedDB database and creates necessary object stores.
+ * This function implements a singleton pattern to ensure only one database connection
+ * is active at a time. It also handles database version upgrades automatically.
+ * 
+ * @returns Promise that resolves to the opened IndexedDB database instance
+ * @throws {string} If the database cannot be opened or an error occurs
+ */
 export function openDb(): Promise<IDBDatabase> {
   if (dbPromise) {
     return dbPromise;
@@ -49,6 +64,13 @@ export function openDb(): Promise<IDBDatabase> {
   return dbPromise;
 }
 
+/**
+ * Clears all data from the specified IndexedDB object store.
+ * 
+ * @param storeName - The name of the object store to clear
+ * @returns Promise that resolves when the store is cleared
+ * @throws {any} If the clear operation fails
+ */
 export async function clearStore(storeName: string): Promise<void> {
   const db = await openDb();
   return new Promise((resolve, reject) => {
@@ -60,6 +82,15 @@ export async function clearStore(storeName: string): Promise<void> {
   });
 }
 
+/**
+ * Writes data to the specified IndexedDB object store.
+ * 
+ * @template T - The type of data to write
+ * @param storeName - The name of the object store to write to
+ * @param data - The data object to store
+ * @returns Promise that resolves when the data is written
+ * @throws {any} If the write operation fails
+ */
 export async function writeToStore<T>(storeName: string, data: T): Promise<void> {
     const db = await openDb();
     return new Promise((resolve, reject) => {
@@ -71,6 +102,15 @@ export async function writeToStore<T>(storeName: string, data: T): Promise<void>
     });
 }
 
+/**
+ * Reads a single record from the specified IndexedDB object store by key.
+ * 
+ * @template T - The type of data to read
+ * @param storeName - The name of the object store to read from
+ * @param key - The key of the record to retrieve
+ * @returns Promise that resolves to the stored data or undefined if not found
+ * @throws {any} If the read operation fails
+ */
 export async function readFromStore<T>(storeName: string, key: IDBValidKey): Promise<T | undefined> {
     const db = await openDb();
     return new Promise((resolve, reject) => {
@@ -82,6 +122,14 @@ export async function readFromStore<T>(storeName: string, key: IDBValidKey): Pro
     });
 }
 
+/**
+ * Reads all records from the specified IndexedDB object store.
+ * 
+ * @template T - The type of data to read
+ * @param storeName - The name of the object store to read from
+ * @returns Promise that resolves to an array of all stored records
+ * @throws {any} If the read operation fails
+ */
 export async function readAllFromStore<T>(storeName: string): Promise<T[]> {
   const db = await openDb();
   return new Promise((resolve, reject) => {

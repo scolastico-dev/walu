@@ -2,6 +2,15 @@ import { WaluConfig } from "./config";
 import { downloadUpdateBin, downloadVersionJson } from "./download";
 import { checkIfValidSignature } from "./crypto";
 
+/**
+ * Updates WALU to the latest version available from the configured API endpoints.
+ * This function checks for version differences, verifies signatures, and downloads
+ * the update if a newer version is available. Development versions are skipped.
+ * 
+ * @param cfg - The WALU configuration object containing API endpoints and storage functions
+ * @returns Promise that resolves when the update check and download (if needed) are complete
+ * @throws {Error} If version download, signature verification, or file download fails
+ */
 export async function updateWalu(cfg: WaluConfig): Promise<void> {
   try {
     console.log('[WALU] Checking for updates...');

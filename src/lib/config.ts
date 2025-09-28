@@ -1,5 +1,10 @@
 import { IApiUrls, IStorageData } from "./types";
 
+/**
+ * Configuration class for WALU.
+ * Manages API URLs, storage functions, and cryptographic verification settings.
+ * Provides a centralized configuration interface for all WALU operations.
+ */
 export class WaluConfig {
   protected readonly publicKey: string;
   protected readonly apiUrls: IApiUrls;
@@ -7,6 +12,16 @@ export class WaluConfig {
   protected readonly storageWriteFunction: (data: IStorageData) => Promise<void>;
   protected readonly downloadStatusFunction: (msg: string, progress: number) => void = () => {};
 
+  /**
+   * Creates a new WaluConfig instance with the specified configuration options.
+   * 
+   * @param config - Configuration object containing all necessary settings
+   * @param config.publicKey - RSA public key in PEM format for signature verification
+   * @param config.apiUrls - API URLs object or base URL string for version and update endpoints
+   * @param config.storageReadFunction - Optional custom function to read storage data
+   * @param config.storageWriteFunction - Optional custom function to write storage data
+   * @param config.downloadStatusFunction - Optional callback for download progress updates
+   */
   constructor(
     protected readonly config: {
       publicKey: typeof WaluConfig.prototype.publicKey,
@@ -47,9 +62,40 @@ export class WaluConfig {
     this.downloadStatusFunction = config.downloadStatusFunction ?? (() => {});
   }
 
+  /**
+   * Gets the RSA public key used for signature verification.
+   * 
+   * @returns The public key in PEM format
+   */
   getPublicKey() { return this.publicKey; }
+  
+  /**
+   * Reads storage data using the configured storage read function.
+   * 
+   * @returns Promise resolving to the stored data or null if no data exists
+   */
   storageRead() { return this.storageReadFunction(); }
+  
+  /**
+   * Writes storage data using the configured storage write function.
+   * 
+   * @param data - The storage data to write
+   * @returns Promise that resolves when the data is written
+   */
   storageWrite(data: IStorageData) { return this.storageWriteFunction(data); }
+  
+  /**
+   * Reports download status using the configured status function.
+   * 
+   * @param msg - Status message to display
+   * @param progress - Progress value between 0 and 1
+   */
   downloadStatus(msg: string, progress: number) { return this.downloadStatusFunction(msg, progress); }
+  
+  /**
+   * Gets the API URLs configuration.
+   * 
+   * @returns The API URLs object containing version and update endpoints
+   */
   getApiUrls() { return this.apiUrls; }
 }

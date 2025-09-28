@@ -4,6 +4,15 @@ import { prepareCache } from "./cache";
 import { checkIfValidSignature } from "./crypto";
 import * as JSZip from "jszip";
 
+/**
+ * Shows a file dialog to allow users to manually install a WALU update bundle.
+ * This function prompts the user to select a .bundle file, validates its contents,
+ * verifies the signature, stores the update, and prepares the cache.
+ * 
+ * @param cfg - The WALU configuration object
+ * @returns Promise that resolves when the installation is complete
+ * @throws {Error} If no file is selected, the bundle is invalid, signature verification fails, or installation fails
+ */
 export async function showInstallDialog(cfg: WaluConfig): Promise<void> {
   console.log('[WALU] Asking for update bundle...');
   let file: File | null = null;

@@ -1,14 +1,9 @@
 import { openDb, writeToStore, readAllFromStore, clearStore, DOWNLOAD_STORE } from "./database";
 import { WaluConfig } from "./config";
-import { IVersionFile } from "./types";
+import { IDownloadChunk, IVersionFile } from "./types";
 import * as CryptoJS from "crypto-js";
 
 const fetchOptions: RequestInit = { method: 'GET', cache: 'no-store' };
-
-interface IDownloadChunk {
-  id?: number;
-  data: Uint8Array;
-}
 
 async function downloadToDb(
   url: string,
@@ -60,7 +55,15 @@ async function getDownloadedDataAsUint8Array(): Promise<Uint8Array> {
   return result;
 }
 
-
+/**
+ * Downloads and parses the version.json file from the configured API endpoint.
+ * This function retrieves the version information including hash and signature
+ * that are needed for update verification.
+ * 
+ * @param cfg - The WALU configuration containing API URLs and status callback
+ * @returns Promise that resolves to the parsed version file object
+ * @throws {Error} If the download fails or the JSON cannot be parsed
+ */
 export async function downloadVersionJson(cfg: WaluConfig): Promise<IVersionFile> {
   cfg.downloadStatus('Downloading version information...', 0);
   await downloadToDb(
@@ -74,6 +77,16 @@ export async function downloadVersionJson(cfg: WaluConfig): Promise<IVersionFile
   return JSON.parse(jsonText);
 }
 
+/**
+ * Downloads the update.bin file from the configured API endpoint with integrity verification.
+ * This function downloads the binary update file in chunks, verifies its hash matches
+ * the expected value from the version file, and stores it for installation.
+ * 
+ * @param cfg - The WALU configuration containing API URLs and storage functions
+ * @param version - The version file object containing the expected hash for verification
+ * @returns Promise that resolves when the download and verification are complete
+ * @throws {Error} If the download fails, hash verification fails, or storage fails
+ */
 export async function downloadUpdateBin(cfg: WaluConfig, version: IVersionFile): Promise<void> {
   cfg.downloadStatus('Starting update file download...', 0);
   await downloadToDb(

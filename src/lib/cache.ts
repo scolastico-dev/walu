@@ -3,6 +3,16 @@ import { CACHE_STORE, clearStore, writeToStore } from "./database";
 import { IStorageData } from "./types";
 import * as JSZip from "jszip";
 
+/**
+ * Prepares the cache by extracting files from a ZIP archive and storing them in IndexedDB.
+ * This function clears the existing cache, extracts all files from the provided ZIP data,
+ * and stores each file as a blob in the cache store with progress tracking.
+ * 
+ * @param cfg - The WALU configuration object containing download status callback
+ * @param data - The storage data containing the ZIP file to be cached
+ * @returns A promise that resolves when the cache preparation is complete
+ * @throws {Error} If the ZIP file cannot be loaded or processed
+ */
 export async function prepareCache(cfg: WaluConfig, data: IStorageData): Promise<void> {
   cfg.downloadStatus('Preparing cache...', 0);
   await clearStore(CACHE_STORE);
