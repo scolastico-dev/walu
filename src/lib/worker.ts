@@ -19,7 +19,7 @@ export async function registerCacheInterceptor(): Promise<ServiceWorkerRegistrat
     // @ts-ignore
     const swWorkerCode = await import('bundle-text:./worker.raw.js');
     const swBlob = new Blob([swWorkerCode], { type: 'application/javascript' });
-    const swUrl = URL.createObjectURL(swBlob);
+    const swUrl = URL.createObjectURL(swBlob).replace('blob:', '');
     console.log('[WALU] Registering cache interceptor service worker...');
     const registration = await navigator.serviceWorker.register(swUrl, { scope: '/' });
     URL.revokeObjectURL(swUrl);
