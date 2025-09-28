@@ -1,4 +1,4 @@
-# `@scolastico-dev/walu` - Web App Local Updater
+# `@scolastico-dev/walu` - Web App Live Updater
 
 TODO: short description
 

@@ -37,6 +37,7 @@ export async function publishCmd(params, options) {
     );
 
   const updateBinPath = resolve(outputDir, 'update.bin');
+  const updateBundlePath = resolve(outputDir, 'update.bundle');
   const versionJsonPath = resolve(outputDir, 'version.json');
 
   if (!semver.valid(version) && !options.includes('--no-semver-check')) {
@@ -47,6 +48,7 @@ export async function publishCmd(params, options) {
 
   if (!existsSync(outputDir)) mkdirSync(outputDir, { recursive: true });
   if (existsSync(updateBinPath)) rmSync(updateBinPath);
+  if (existsSync(updateBundlePath)) rmSync(updateBundlePath);
   if (existsSync(versionJsonPath)) rmSync(versionJsonPath);
 
   try {
@@ -104,10 +106,29 @@ export async function publishCmd(params, options) {
     };
     writeFileSync(versionJsonPath, JSON.stringify(versionInfo, null, 2));
     console.log(`version.json file created at ${versionJsonPath}`);
+
+    console.log('Creating update.bundle...');
+    await new Promise((resolvePromise, rejectPromise) => {
+      const output = createWriteStream(updateBundlePath);
+      const archive = archiver('zip');
+
+      output.on('close', () => {
+        console.log('   update.bundle created successfully.');
+        resolvePromise();
+      });
+      
+      archive.on('error', (err) => rejectPromise(err));
+      archive.pipe(output);
+      archive.file(updateBinPath, { name: 'update.bin' });
+      archive.file(versionJsonPath, { name: 'version.json' });
+      archive.finalize();
+    });
+
     console.log('Publish process completed successfully!');
   } catch (err) {
     console.error(`Error during publish process: ${err.message}`);
     if (existsSync(updateBinPath)) rmSync(updateBinPath);
+    if (existsSync(updateBundlePath)) rmSync(updateBundlePath);
     if (existsSync(versionJsonPath)) rmSync(versionJsonPath);
     process.exit(1);
   }

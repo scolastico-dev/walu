@@ -10,7 +10,7 @@
 		"build": "parcel build"
 	},
   "bin": {
-    "walu": "cli/main.mjs"
+    "walu": "node cli/main.mjs"
   },
 	"dependencies": {
 		"archiver": "^7.0.1",
