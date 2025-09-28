@@ -74,7 +74,7 @@ export async function showInstallDialog(cfg: WaluConfig): Promise<void> {
   console.log('[WALU] Update to version', remoteVersion.version, 'installed successfully.');
 
   console.log('[WALU] Starting service worker and preparing cache...');
-  await registerCacheInterceptor();
+  await registerCacheInterceptor(cfg);
   const version = await cfg.storageRead();
   if (!version) throw new Error('[WALU] No version installed after update.');
   await prepareCache(cfg, version);

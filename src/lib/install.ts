@@ -14,7 +14,7 @@ import { reloadApp } from "./reload";
  * @throws {Error} If service worker registration, update, or cache preparation fails
  */
 export async function installWalu(cfg: WaluConfig): Promise<void> {
-  await registerCacheInterceptor();
+  await registerCacheInterceptor(cfg);
   await updateWalu(cfg);
   const version = await cfg.storageRead();
   if (!version) throw new Error('[WALU] No version installed after update.');

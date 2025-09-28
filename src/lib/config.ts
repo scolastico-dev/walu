@@ -6,6 +6,7 @@ import { IApiUrls, IStorageData } from "./types";
  * Provides a centralized configuration interface for all WALU operations.
  */
 export class WaluConfig {
+  protected readonly workerPath: string;
   protected readonly publicKey: string;
   protected readonly apiUrls: IApiUrls;
   protected readonly storageReadFunction: () => Promise<IStorageData | null>;
@@ -16,6 +17,7 @@ export class WaluConfig {
    * Creates a new WaluConfig instance with the specified configuration options.
    * 
    * @param config - Configuration object containing all necessary settings
+   * @param config.workerPath - Path to the service worker script
    * @param config.publicKey - RSA public key in PEM format for signature verification
    * @param config.apiUrls - API URLs object or base URL string for version and update endpoints
    * @param config.storageReadFunction - Optional custom function to read storage data
@@ -24,6 +26,7 @@ export class WaluConfig {
    */
   constructor(
     protected readonly config: {
+      workerPath: typeof WaluConfig.prototype.workerPath,
       publicKey: typeof WaluConfig.prototype.publicKey,
       apiUrls: typeof WaluConfig.prototype.apiUrls | string,
       storageReadFunction?: typeof WaluConfig.prototype.storageReadFunction,
@@ -61,6 +64,13 @@ export class WaluConfig {
     });
     this.downloadStatusFunction = config.downloadStatusFunction ?? (() => {});
   }
+
+  /**
+   * Gets the path to the service worker script.
+   * 
+   * @returns The worker path as a string
+   */
+  getWorkerPath() { return this.workerPath; }
 
   /**
    * Gets the RSA public key used for signature verification.
