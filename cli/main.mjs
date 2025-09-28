@@ -8,6 +8,7 @@ if (args.length === 0) {
   console.log('Commands:');
   console.log('  publish   Publish the app to the hosting service');
   console.log('  key       Generate a new RSA key pair');
+  console.log('  worker    Generate the service worker script');
   process.exit(1);
 }
 

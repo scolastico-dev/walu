@@ -37,5 +37,13 @@
 		"parcel": "^2.16.0",
 		"typedoc": "^0.28.13",
 		"typescript": "^5.9.2"
-	}
+	},
+  "targets": {
+    "main": {
+      "includeNodeModules": true
+    },
+    "module": {
+      "includeNodeModules": true
+    }
+  }
 }

@@ -1,6 +1,6 @@
 import { WaluConfig } from "./config";
 import { IVersionFile } from "./types";
-import { SHA256 } from "crypto-js";
+import * as CryptoJS from "crypto-js";
 
 function pemToArrayBuffer(pem: string): ArrayBuffer {
   const b64 = pem
@@ -51,7 +51,7 @@ export async function checkIfValidSignature(cfg: WaluConfig, version: IVersionFi
     );
 
     const signatureBuffer = base64ToArrayBuffer(version.signature);
-    const calculatedHash = SHA256(version.hash + version.version).toString();
+    const calculatedHash = CryptoJS.SHA256(version.hash + version.version).toString();
     const dataBuffer = new TextEncoder().encode(calculatedHash);
     const isValid = await crypto.subtle.verify(
       {

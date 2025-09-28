@@ -2,8 +2,8 @@ import type { WaluConfig } from "./config";
 import { registerCacheInterceptor } from "./worker";
 import { prepareCache } from "./cache";
 import { checkIfValidSignature } from "./crypto";
-import * as JSZip from "jszip";
 import { reloadApp } from "./reload";
+import * as JSZip from "jszip";
 
 /**
  * Shows a file dialog to allow users to manually install a WALU update bundle.
