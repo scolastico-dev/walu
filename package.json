@@ -1,0 +1,31 @@
+{
+	"name": "@scolastico-dev/walu",
+	"version": "0.0.0",
+  "license": "MIT",
+	"source": "src/index.ts",
+	"main": "dist/index.cjs",
+	"module": "dist/index.mjs",
+	"types": "dist/index.d.ts",
+	"scripts": {
+		"build": "parcel build"
+	},
+  "bin": {
+    "walu": "cli/main.mjs"
+  },
+	"dependencies": {
+		"archiver": "^7.0.1",
+		"crypto-js": "^4.2.0",
+		"jszip": "^3.10.1",
+		"semver": "^7.7.2"
+	},
+	"devDependencies": {
+		"@parcel/packager-ts": "2.16.0",
+		"@parcel/transformer-inline-string": "2.16.0",
+		"@parcel/transformer-typescript-types": "2.16.0",
+		"@types/archiver": "^6.0.3",
+		"@types/crypto-js": "^4.2.2",
+		"@types/semver": "^7.7.1",
+		"parcel": "^2.16.0",
+		"typescript": "^5.9.2"
+	}
+}

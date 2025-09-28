@@ -1,0 +1,16 @@
+{
+  "editor.detectIndentation": false,
+  "editor.tabSize": 2,
+  "files.insertFinalNewline": true,
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": "always",
+    "source.fixAll.stylelint": "always",
+    "editor.action.formatDocument": "always"
+  },
+  "css.customData": [".vscode/tailwind.json"],
+  "typescript.tsdk": "node_modules/typescript/lib",
+  "cSpell.words": [
+    "scolastico",
+    "walu"
+  ]
+}
