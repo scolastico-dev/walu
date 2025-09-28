@@ -3,6 +3,7 @@ import { registerCacheInterceptor } from "./worker";
 import { prepareCache } from "./cache";
 import { checkIfValidSignature } from "./crypto";
 import * as JSZip from "jszip";
+import { reloadApp } from "./reload";
 
 /**
  * Shows a file dialog to allow users to manually install a WALU update bundle.
@@ -78,4 +79,5 @@ export async function showInstallDialog(cfg: WaluConfig): Promise<void> {
   if (!version) throw new Error('[WALU] No version installed after update.');
   await prepareCache(cfg, version);
   console.log('[WALU] Installation complete.');
+  await reloadApp();
 }

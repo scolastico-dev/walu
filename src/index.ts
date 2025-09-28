@@ -5,5 +5,6 @@ export * from './lib/database';
 export * from './lib/dialog';
 export * from './lib/download';
 export * from './lib/install';
+export * from './lib/reload';
 export * from './lib/types';
 export * from './lib/worker';

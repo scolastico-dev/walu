@@ -22,12 +22,12 @@ installWalu(new WaluConfig(
     '-----BEGIN PUBLIC KEY-----',
     'MIIBIjANBgkqhkiG9w0BAQEFAAOCA',
     '[...your rsa public key...]',
-    '-----END PUBLIC KEY-----'
+    '-----END PUBLIC KEY-----',
   ].join('\n'),
   apiUrls: {
     versionJson: 'https://example.com/path/to/version.json',
     updateBin: 'https://example.com/path/to/update.bin',
-  }
+  },
 )).then(() => {});
 ```
 
