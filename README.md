@@ -14,10 +14,13 @@ npm install @scolastico-dev/walu
 
 ## Usage
 
+Add the following code to your application startup code:
+
 ```typescript
 import { WaluConfig, installWalu } from '@scolastico-dev/walu';
 
 installWalu(new WaluConfig(
+  workerPath: '/walu-worker.js',
   publicKey: [
     '-----BEGIN PUBLIC KEY-----',
     'MIIBIjANBgkqhkiG9w0BAQEFAAOCA',
@@ -29,6 +32,12 @@ installWalu(new WaluConfig(
     updateBin: 'https://example.com/path/to/update.bin',
   },
 )).then(() => {});
+```
+
+Make sure to host the `walu-worker.js` so it is accessible at the path you specify in `workerPath`.
+
+```bash
+npx @scolastico-dev/walu worker ./public/walu-worker.js
 ```
 
 ## Publish a version

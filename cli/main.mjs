@@ -1,5 +1,6 @@
 import { keyCmd } from './lib/key.mjs';
 import { publishCmd } from './lib/publish.mjs';
+import { workerCmd } from './lib/worker.mjs';
 
 const args = process.argv.slice(2);
 if (args.length === 0) {
@@ -21,6 +22,9 @@ switch (command) {
     break;
   case 'key':
     keyCmd(params, options);
+    break;
+  case 'worker':
+    workerCmd(params, options);
     break;
   default:
     console.error(`Unknown command: ${command}`);
