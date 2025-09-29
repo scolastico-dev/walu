@@ -5,6 +5,10 @@
     "email": "support@scolasti.co",
     "url": "https://scolasti.co"
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/scolastico-dev/walu"
+  },
   "version": "0.0.0",
 	"license": "MIT",
 	"source": "src/index.ts",
