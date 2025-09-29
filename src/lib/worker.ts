@@ -18,7 +18,7 @@ export async function registerCacheInterceptor(cfg: WaluConfig): Promise<Service
 
   try {
     console.log('[WALU] Registering cache interceptor service worker...');
-    const registration = await navigator.serviceWorker.register(cfg.getWorkerPath(), { scope: './' });
+    const registration = await navigator.serviceWorker.register(cfg.getWorkerPath());
     console.log('[WALU] Service Worker registered successfully:', registration);
     return registration;
   } catch (error) {
