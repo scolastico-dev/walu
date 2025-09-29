@@ -6,23 +6,19 @@ import { IStorageData } from "./types";
  */
 export type LogLevel = 'NONE' | 'ERROR' | 'WARN' | 'INFO';
 
-const LOG_LEVEL_KEY = 'walu-log-level';
+const LOG_LEVEL_KEY = 'log-level';
 const DEFAULT_LOG_LEVEL: LogLevel = 'INFO';
-
-let cachedLogLevel: LogLevel | null = null;
 
 /**
  * Gets the current log level from sessionStorage or returns the default
  * @returns The current log level
  */
 async function getLogLevel(): Promise<LogLevel> {
-  if (cachedLogLevel) return cachedLogLevel;
   try {
     await openDb();
-    const data = await readFromStore<IStorageData>(STORAGE_STORE, 'log-level');
+    const data = await readFromStore<IStorageData>(STORAGE_STORE, LOG_LEVEL_KEY);
     if (data) {
-      cachedLogLevel = data.value as LogLevel;
-      return cachedLogLevel;
+      return data.value as LogLevel;
     }
   } catch (e) {
     // db might not be available, continue silently
@@ -36,8 +32,7 @@ async function getLogLevel(): Promise<LogLevel> {
  */
 export async function setLogging(level: LogLevel): Promise<void> {
   await openDb();
-  await writeToStore<IStorageData>(STORAGE_STORE, { key: 'log-level', value: level });
-  cachedLogLevel = level;
+  await writeToStore<IStorageData>(STORAGE_STORE, { key: LOG_LEVEL_KEY, value: level });
 }
 
 /**
