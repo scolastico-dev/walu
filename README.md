@@ -23,6 +23,8 @@ WALU is a library to add live update capabilities to your web application. It wo
 
 ```bash
 npm install @scolastico-dev/walu
+# or unstable
+npm install @scolastico-dev/walu@git+ssh://github.com/scolastico-dev/walu.git
 ```
 
 ## Usage
