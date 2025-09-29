@@ -1,6 +1,6 @@
 import { WaluConfig } from "./config";
 import { CACHE_STORE, clearStore, writeToStore } from "./database";
-import { IStorageData } from "./types";
+import { ICacheData } from "./types";
 import { logger } from "./logging";
 import * as JSZip from "jszip";
 
@@ -14,7 +14,7 @@ import * as JSZip from "jszip";
  * @returns A promise that resolves when the cache preparation is complete
  * @throws {Error} If the ZIP file cannot be loaded or processed
  */
-export async function prepareCache(cfg: WaluConfig, data: IStorageData): Promise<void> {
+export async function prepareCache(cfg: WaluConfig, data: ICacheData): Promise<void> {
   logger.info('Starting cache preparation...');
   cfg.downloadStatus('Preparing cache...', 0);
   await clearStore(CACHE_STORE);

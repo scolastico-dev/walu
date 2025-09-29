@@ -17,9 +17,19 @@ export interface IVersionFile {
  * This interface represents the complete storage data that includes
  * both metadata and the binary update content.
  */
-export interface IStorageData extends IVersionFile {
+export interface ICacheData extends IVersionFile {
   /** The binary update file as a Blob */
   file: Blob;
+}
+
+/**
+ * Represents a key-value pair for storage operations.
+ * Used for storing the current version and update file in IndexedDB,
+ * as well as making config data available to the service worker.
+ */
+export interface IStorageData {
+  key: string;
+  value: string | Blob;
 }
 
 /**

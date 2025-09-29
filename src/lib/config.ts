@@ -1,5 +1,6 @@
-import { IApiUrls, IStorageData } from "./types";
+import { IApiUrls, ICacheData, IStorageData } from "./types";
 import { logger } from "./logging";
+import { STORAGE_STORE, writeToStore, readFromStore, openDb } from "./database";
 
 /**
  * Configuration class for WALU.
@@ -10,8 +11,8 @@ export class WaluConfig {
   protected readonly workerPath: string;
   protected readonly publicKey: string;
   protected readonly apiUrls: IApiUrls;
-  protected readonly storageReadFunction: () => Promise<IStorageData | null>;
-  protected readonly storageWriteFunction: (data: IStorageData) => Promise<void>;
+  protected readonly storageReadFunction: () => Promise<ICacheData | null>;
+  protected readonly storageWriteFunction: (data: ICacheData) => Promise<void>;
   protected readonly downloadStatusFunction: (msg: string, progress: number) => Promise<void> = async () => {};
 
   /**
@@ -52,18 +53,19 @@ export class WaluConfig {
     }
     
     this.storageReadFunction = config.storageReadFunction ?? (async () => {
-      const res = localStorage.getItem("walu-storage");
-      if (!res) return null;
+      await openDb();
+      const [version, file] = await Promise.all([
+        readFromStore<IStorageData>(STORAGE_STORE, 'version'),
+        readFromStore<IStorageData>(STORAGE_STORE, 'file'),
+      ]);
+      if (!version || !file) return null;
       try {
-        const parsed = JSON.parse(res);
+        const parsed = JSON.parse(version.value as string);
         if (!parsed.file || !parsed.version || !parsed.signature) {
           logger.warn('Invalid storage data found, missing required fields');
           return null;
         }
-        return {
-          ...parsed,
-          file: new Blob([new Uint8Array(Object.values(parsed.file.data))], { type: parsed.file.type }),
-        };
+        return { ...parsed, file: file.value as Blob };
       } catch (error) {
         logger.warn('Failed to parse storage data:', error);
         return null;
@@ -72,10 +74,18 @@ export class WaluConfig {
     
     this.storageWriteFunction = config.storageWriteFunction ?? (async (data) => {
       try {
-        localStorage.setItem("walu-storage", JSON.stringify({
-          ...data,
-          file: { data: Array.from(new Uint8Array(await data.file.arrayBuffer())), type: data.file.type },
-        }));
+        await openDb();
+        await Promise.all([
+          writeToStore<IStorageData>(STORAGE_STORE, {
+            key: 'version',
+            value: JSON.stringify({ ...data, file: undefined })
+          }),
+          writeToStore<IStorageData>(STORAGE_STORE, {
+            key: 'file',
+            value: data.file
+          }),
+        ]);
+        logger.info('Storage data written successfully');
       } catch (error) {
         logger.error('Failed to write storage data:', error);
         throw error;
@@ -112,7 +122,7 @@ export class WaluConfig {
    * 
    * @returns Promise resolving to the stored data or null if no data exists
    */
-  storageRead(): Promise<IStorageData | null> { return this.storageReadFunction(); }
+  storageRead(): Promise<ICacheData | null> { return this.storageReadFunction(); }
   
   /**
    * Writes storage data using the configured storage write function.
@@ -120,7 +130,7 @@ export class WaluConfig {
    * @param data - The storage data to write
    * @returns Promise that resolves when the data is written
    */
-  storageWrite(data: IStorageData): Promise<void> { return this.storageWriteFunction(data); }
+  storageWrite(data: ICacheData): Promise<void> { return this.storageWriteFunction(data); }
   
   /**
    * Reports download status using the configured status function.

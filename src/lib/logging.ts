@@ -1,3 +1,6 @@
+import { openDb, readFromStore, STORAGE_STORE, writeToStore } from "./database";
+import { IStorageData } from "./types";
+
 /**
  * Logging levels for WALU
  */
@@ -6,18 +9,23 @@ export type LogLevel = 'NONE' | 'ERROR' | 'WARN' | 'INFO';
 const LOG_LEVEL_KEY = 'walu-log-level';
 const DEFAULT_LOG_LEVEL: LogLevel = 'INFO';
 
+let cachedLogLevel: LogLevel | null = null;
+
 /**
  * Gets the current log level from sessionStorage or returns the default
  * @returns The current log level
  */
-function getLogLevel(): LogLevel {
+async function getLogLevel(): Promise<LogLevel> {
+  if (cachedLogLevel) return cachedLogLevel;
   try {
-    const stored = sessionStorage.getItem(LOG_LEVEL_KEY);
-    if (stored && ['NONE', 'ERROR', 'WARN', 'INFO'].includes(stored)) {
-      return stored as LogLevel;
+    await openDb();
+    const data = await readFromStore<IStorageData>(STORAGE_STORE, 'log-level');
+    if (data) {
+      cachedLogLevel = data.value as LogLevel;
+      return cachedLogLevel;
     }
   } catch (e) {
-    // sessionStorage might not be available
+    // db might not be available, continue silently
   }
   return DEFAULT_LOG_LEVEL;
 }
@@ -26,12 +34,10 @@ function getLogLevel(): LogLevel {
  * Sets the logging level for WALU and stores it in sessionStorage
  * @param level - The log level to set: "NONE", "ERROR", "WARN", or "INFO"
  */
-export function setLogging(level: LogLevel): void {
-  try {
-    sessionStorage.setItem(LOG_LEVEL_KEY, level);
-  } catch (e) {
-    // sessionStorage might not be available, continue silently
-  }
+export async function setLogging(level: LogLevel): Promise<void> {
+  await openDb();
+  await writeToStore<IStorageData>(STORAGE_STORE, { key: 'log-level', value: level });
+  cachedLogLevel = level;
 }
 
 /**
@@ -39,8 +45,8 @@ export function setLogging(level: LogLevel): void {
  * @param level - The level to check
  * @returns true if the level should be shown
  */
-function shouldLog(level: LogLevel): boolean {
-  const currentLevel = getLogLevel();
+async function shouldLog(level: LogLevel): Promise<boolean> {
+  const currentLevel = await getLogLevel();
   
   if (currentLevel === 'NONE') return false;
   if (currentLevel === 'ERROR') return level === 'ERROR';
@@ -59,8 +65,8 @@ export const logger = {
    * @param message - The message to log
    * @param args - Additional arguments
    */
-  error: (message: string, ...args: any[]): void => {
-    if (shouldLog('ERROR')) console.error(`[WALU] ${message}`, ...args);
+  error: async (message: string, ...args: any[]): Promise<void> => {
+    if (await shouldLog('ERROR')) console.error(`[WALU] ${message}`, ...args);
   },
 
   /**
@@ -68,8 +74,8 @@ export const logger = {
    * @param message - The message to log
    * @param args - Additional arguments
    */
-  warn: (message: string, ...args: any[]): void => {
-    if (shouldLog('WARN')) console.warn(`[WALU] ${message}`, ...args);
+  warn: async (message: string, ...args: any[]): Promise<void> => {
+    if (await shouldLog('WARN')) console.warn(`[WALU] ${message}`, ...args);
   },
 
   /**
@@ -77,7 +83,7 @@ export const logger = {
    * @param message - The message to log
    * @param args - Additional arguments
    */
-  info: (message: string, ...args: any[]): void => {
-    if (shouldLog('INFO')) console.log(`[WALU] ${message}`, ...args);
+  info: async (message: string, ...args: any[]): Promise<void> => {
+    if (await shouldLog('INFO')) console.log(`[WALU] ${message}`, ...args);
   }
 };

@@ -9,8 +9,11 @@ export const CACHE_STORE = 'cache';
 /** The name of the object store used for temporary download chunks */
 export const DOWNLOAD_STORE = 'download';
 
+/** The name of the object store used for storing the current version and config values */
+export const STORAGE_STORE = 'storage';
+
 /** The current version of the IndexedDB database schema */
-export const DB_VERSION = 1;
+export const DB_VERSION = 2;
 
 let dbPromise: Promise<IDBDatabase> | null = null;
 
@@ -51,14 +54,27 @@ export function openDb(): Promise<IDBDatabase> {
     request.onupgradeneeded = (event) => {
       const upgradeDb = (event.target as IDBOpenDBRequest).result;
       logger.info(`Upgrading IndexedDB from version ${event.oldVersion} to ${event.newVersion}`);
-      if (!upgradeDb.objectStoreNames.contains(CACHE_STORE)) {
-        logger.info(`Creating object store: ${CACHE_STORE}`);
-        upgradeDb.createObjectStore(CACHE_STORE, { keyPath: 'path' });
-      }
-      if (!upgradeDb.objectStoreNames.contains(DOWNLOAD_STORE)) {
-        logger.info(`Creating object store: ${DOWNLOAD_STORE}`);
-        // Use a simple number key for chunk order
-        upgradeDb.createObjectStore(DOWNLOAD_STORE, { keyPath: 'id', autoIncrement: true });
+      let version = event.oldVersion || 0;
+      switch (version) {
+        case 0:
+          if (!upgradeDb.objectStoreNames.contains(CACHE_STORE)) {
+            logger.info(`Creating object store: ${CACHE_STORE}`);
+            upgradeDb.createObjectStore(CACHE_STORE, { keyPath: 'path' });
+          }
+          if (!upgradeDb.objectStoreNames.contains(DOWNLOAD_STORE)) {
+            logger.info(`Creating object store: ${DOWNLOAD_STORE}`);
+            // Use a simple number key for chunk order
+            upgradeDb.createObjectStore(DOWNLOAD_STORE, { keyPath: 'id', autoIncrement: true });
+          }
+          version++;
+          // fallthrough
+        case 1:
+          if (!upgradeDb.objectStoreNames.contains(STORAGE_STORE)) {
+            logger.info(`Creating object store: ${STORAGE_STORE}`);
+            upgradeDb.createObjectStore(STORAGE_STORE, { keyPath: 'key' });
+          }
+          version++;
+        // Add future migrations here
       }
     };
   });
