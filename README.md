@@ -63,6 +63,9 @@ To achieve this, we recommend adding the command to your `package.json` scripts:
 }
 ```
 
+See the documentation for a full list of available options and functions:
+[https://scolastico-dev.github.io/walu/](https://scolastico-dev.github.io/walu/)
+
 ## Publish a version
 
 ```bash
