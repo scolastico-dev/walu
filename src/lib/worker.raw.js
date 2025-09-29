@@ -1,51 +1,5 @@
 import { openDb, readFromStore, CACHE_STORE } from './database';
-
-// Simple logging system for Service Worker
-const LOG_LEVEL_KEY = 'walu-log-level';
-const DEFAULT_LOG_LEVEL = 'INFO';
-
-function getLogLevel() {
-  try {
-    const stored = self.clients && self.clients.matchAll 
-      ? null // In service worker context, we can't access sessionStorage directly
-      : sessionStorage?.getItem(LOG_LEVEL_KEY);
-    if (stored && ['NONE', 'ERROR', 'WARN', 'INFO'].includes(stored)) {
-      return stored;
-    }
-  } catch (e) {
-    // sessionStorage might not be available
-  }
-  return DEFAULT_LOG_LEVEL;
-}
-
-function shouldLog(level) {
-  const currentLevel = getLogLevel();
-  
-  if (currentLevel === 'NONE') return false;
-  if (currentLevel === 'ERROR') return level === 'ERROR';
-  if (currentLevel === 'WARN') return level === 'ERROR' || level === 'WARN';
-  if (currentLevel === 'INFO') return level === 'ERROR' || level === 'WARN' || level === 'INFO';
-  
-  return false;
-}
-
-const logger = {
-  error: (message, ...args) => {
-    if (shouldLog('ERROR')) {
-      console.error(`[WALU] ${message}`, ...args);
-    }
-  },
-  warn: (message, ...args) => {
-    if (shouldLog('WARN')) {
-      console.warn(`[WALU] ${message}`, ...args);
-    }
-  },
-  info: (message, ...args) => {
-    if (shouldLog('INFO')) {
-      console.log(`[WALU] ${message}`, ...args);
-    }
-  }
-};
+import { logger } from './logging';
 
 self.addEventListener('install', (event) => {
   logger.info('Service Worker installed.');
