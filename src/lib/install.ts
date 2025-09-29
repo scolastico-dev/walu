@@ -15,7 +15,7 @@ import { reloadApp } from "./reload";
  */
 export async function installWalu(cfg: WaluConfig): Promise<void> {
   await registerCacheInterceptor(cfg);
-  await updateWalu(cfg);
+  await updateWalu(cfg).catch(err => console.warn('[WALU] Update skipped:', err));
   const version = await cfg.storageRead();
   if (!version) throw new Error('[WALU] No version installed after update.');
   await prepareCache(cfg, version);
