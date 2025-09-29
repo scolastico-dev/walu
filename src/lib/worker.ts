@@ -32,4 +32,8 @@ export async function registerCacheInterceptor(cfg: WaluConfig): Promise<Service
 // @ts-ignore
 import swSrc from 'bundle-text:./worker.raw.js';
 import { WaluConfig } from './config';
-export const SERVICE_WORKER_SOURCE = swSrc;
+
+/**
+ * The source code of the Service Worker as a string.
+ */
+export const SERVICE_WORKER_SOURCE: string = swSrc;
