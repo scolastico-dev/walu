@@ -1,6 +1,7 @@
 import { WaluConfig } from "./config";
 import { CACHE_STORE, clearStore, writeToStore } from "./database";
 import { IStorageData } from "./types";
+import { logger } from "./logging";
 import * as JSZip from "jszip";
 
 /**
@@ -14,25 +15,34 @@ import * as JSZip from "jszip";
  * @throws {Error} If the ZIP file cannot be loaded or processed
  */
 export async function prepareCache(cfg: WaluConfig, data: IStorageData): Promise<void> {
+  logger.info('Starting cache preparation...');
   cfg.downloadStatus('Preparing cache...', 0);
   await clearStore(CACHE_STORE);
 
-  const zip = await JSZip.loadAsync(data.file);
-  const files = Object.values(zip.files).filter(file => !file.dir);
-  let processedFiles = 0;
+  try {
+    const zip = await JSZip.loadAsync(data.file);
+    const files = Object.values(zip.files).filter(file => !file.dir);
+    let processedFiles = 0;
 
-  cfg.downloadStatus('Installing files to cache...', 0.1);
-  for (const file of files) {
-    const blob = await file.async('blob');
-    const path = `/${file.name}`;
-    await writeToStore(CACHE_STORE, { path, blob });
+    logger.info(`Cache preparation: Found ${files.length} files to process`);
+    cfg.downloadStatus('Installing files to cache...', 0.1);
+    
+    for (const file of files) {
+      const blob = await file.async('blob');
+      const path = `/${file.name}`;
+      await writeToStore(CACHE_STORE, { path, blob });
 
-    processedFiles++;
-    cfg.downloadStatus(
-        `Installing files to cache: ${processedFiles}/${files.length}`,
-        0.1 + (processedFiles / files.length) * 0.9
-    );
+      processedFiles++;
+      cfg.downloadStatus(
+          `Installing files to cache: ${processedFiles}/${files.length}`,
+          0.1 + (processedFiles / files.length) * 0.9
+      );
+    }
+
+    logger.info(`Cache preparation completed successfully: ${processedFiles} files cached`);
+    cfg.downloadStatus('Installation complete', 1);
+  } catch (error) {
+    logger.error('Cache preparation failed:', error);
+    throw error;
   }
-
-  cfg.downloadStatus('Installation complete', 1);
 }

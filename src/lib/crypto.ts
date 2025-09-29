@@ -1,5 +1,6 @@
 import { WaluConfig } from "./config";
 import { IVersionFile } from "./types";
+import { logger } from "./logging";
 import * as CryptoJS from "crypto-js";
 
 function pemToArrayBuffer(pem: string): ArrayBuffer {
@@ -64,7 +65,7 @@ export async function checkIfValidSignature(cfg: WaluConfig, version: IVersionFi
 
     if (!isValid) throw new Error("Signature verification failed: The signature does not match the data.");
   } catch (error) {
-    console.error("An error occurred during signature verification:", error);
+    logger.error("An error occurred during signature verification:", error);
     throw new Error(`Signature verification failed. ${error instanceof Error ? error.message : String(error)}`);
   }
 }

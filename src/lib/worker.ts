@@ -1,3 +1,5 @@
+import { logger } from "./logging";
+
 /**
  * Registers a Service Worker that intercepts HTTP requests and serves cached files from IndexedDB.
  * This function creates a Service Worker from the inline worker code, registers it with the browser,
@@ -10,19 +12,19 @@
 export async function registerCacheInterceptor(cfg: WaluConfig): Promise<ServiceWorkerRegistration> {
   if (!('serviceWorker' in navigator)) throw new Error('[WALU] Service Workers are not supported in this browser.');
   if (navigator.serviceWorker.controller) {
-    console.log('[WALU] A service worker is already running and controlling this page.');
+    logger.info('A service worker is already running and controlling this page.');
     const worker = await navigator.serviceWorker.getRegistration();
     if (!worker) throw new Error('[WALU] Failed to get existing service worker registration.');
     return worker;
   }
 
   try {
-    console.log('[WALU] Registering cache interceptor service worker...');
+    logger.info('Registering cache interceptor service worker...');
     const registration = await navigator.serviceWorker.register(cfg.getWorkerPath());
-    console.log('[WALU] Service Worker registered successfully:', registration);
+    logger.info('Service Worker registered successfully:', registration);
     return registration;
   } catch (error) {
-    console.error('[WALU] Service Worker registration failed...');
+    logger.error('Service Worker registration failed...');
     throw error;
   }
 }

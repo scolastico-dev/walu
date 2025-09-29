@@ -1,6 +1,7 @@
 import { openDb, writeToStore, readAllFromStore, clearStore, DOWNLOAD_STORE } from "./database";
 import { WaluConfig } from "./config";
 import { IDownloadChunk, IVersionFile } from "./types";
+import { logger } from "./logging";
 import * as CryptoJS from "crypto-js";
 
 const fetchOptions: RequestInit = { method: 'GET', cache: 'no-store' };
@@ -11,18 +12,27 @@ async function downloadToDb(
   statusMessage: string,
   progressMultiplier: number = 1
 ): Promise<void> {
+  logger.info(`Starting download from: ${url}`);
   await openDb();
   await clearStore(DOWNLOAD_STORE);
 
   const response = await fetch(url, fetchOptions);
-  if (!response.ok) throw new Error(`[WALU] Failed to download: ${response.status} ${response.statusText}`);
+  if (!response.ok) {
+    logger.error(`Download failed: ${response.status} ${response.statusText} for URL: ${url}`);
+    throw new Error(`[WALU] Failed to download: ${response.status} ${response.statusText}`);
+  }
 
   const contentLength = response.headers.get('content-length');
   const total = contentLength ? parseInt(contentLength, 10) : 0;
   let loaded = 0;
+  
+  logger.info(`Download initiated: ${total > 0 ? `${total} bytes` : 'unknown size'}`);
 
   const reader = response.body?.getReader();
-  if (!reader) throw new Error('[WALU] Unable to read response body');
+  if (!reader) {
+    logger.error('Unable to read response body for URL:', url);
+    throw new Error('[WALU] Unable to read response body');
+  }
 
   while (true) {
     const { done, value } = await reader.read();
@@ -36,13 +46,18 @@ async function downloadToDb(
       cfg.downloadStatus(statusMessage, (loaded / total) * progressMultiplier);
     }
   }
+  
+  logger.info(`Download completed: ${loaded} bytes downloaded from ${url}`);
 }
 
 async function getDownloadedDataAsUint8Array(): Promise<Uint8Array> {
+  logger.info('Reassembling downloaded data from chunks...');
   const chunks = await readAllFromStore<IDownloadChunk>(DOWNLOAD_STORE);
   chunks.sort((a, b) => (a.id ?? 0) - (b.id ?? 0));
 
   const totalLength = chunks.reduce((acc, chunk) => acc + chunk.data.byteLength, 0);
+  logger.info(`Reassembling ${chunks.length} chunks, total size: ${totalLength} bytes`);
+  
   const result = new Uint8Array(totalLength);
   let offset = 0;
   for (const chunk of chunks) {
@@ -51,6 +66,7 @@ async function getDownloadedDataAsUint8Array(): Promise<Uint8Array> {
   }
 
   await clearStore(DOWNLOAD_STORE);
+  logger.info('Data reassembly completed');
 
   return result;
 }
@@ -65,6 +81,7 @@ async function getDownloadedDataAsUint8Array(): Promise<Uint8Array> {
  * @throws {Error} If the download fails or the JSON cannot be parsed
  */
 export async function downloadVersionJson(cfg: WaluConfig): Promise<IVersionFile> {
+  logger.info('Starting version.json download...');
   cfg.downloadStatus('Downloading version information...', 0);
   await downloadToDb(
     cfg.getApiUrls().versionJson,
@@ -73,8 +90,16 @@ export async function downloadVersionJson(cfg: WaluConfig): Promise<IVersionFile
   );
   const data = await getDownloadedDataAsUint8Array();
   cfg.downloadStatus('Version information downloaded', 1);
-  const jsonText = new TextDecoder().decode(data);
-  return JSON.parse(jsonText);
+  
+  try {
+    const jsonText = new TextDecoder().decode(data);
+    const versionFile = JSON.parse(jsonText);
+    logger.info(`Version.json downloaded successfully: version ${versionFile.version}`);
+    return versionFile;
+  } catch (error) {
+    logger.error('Failed to parse version.json:', error);
+    throw error;
+  }
 }
 
 /**
@@ -88,6 +113,7 @@ export async function downloadVersionJson(cfg: WaluConfig): Promise<IVersionFile
  * @throws {Error} If the download fails, hash verification fails, or storage fails
  */
 export async function downloadUpdateBin(cfg: WaluConfig, version: IVersionFile): Promise<void> {
+  logger.info(`Starting update.bin download for version ${version.version}...`);
   cfg.downloadStatus('Starting update file download...', 0);
   await downloadToDb(
     cfg.getApiUrls().updateBin,
@@ -97,6 +123,7 @@ export async function downloadUpdateBin(cfg: WaluConfig, version: IVersionFile):
   );
 
   cfg.downloadStatus('Verifying file integrity...', 0.8);
+  logger.info('Starting hash verification of downloaded file...');
 
   // Reassemble the file from IndexedDB for verification
   const data = await getDownloadedDataAsUint8Array();
@@ -107,10 +134,19 @@ export async function downloadUpdateBin(cfg: WaluConfig, version: IVersionFile):
   const computedHash = CryptoJS.SHA256(fileHash + version.version).toString(CryptoJS.enc.Base64);
 
   if (computedHash !== version.hash) {
+      logger.error(`Hash verification failed: expected ${version.hash}, got ${computedHash}`);
       throw new Error('[WALU] Hash mismatch. Downloaded file is corrupted.');
   }
-
+  
+  logger.info('Hash verification successful');
   cfg.downloadStatus('Saving update file...', 0.9);
-  await cfg.storageWrite({ ...version, file: blob });
-  cfg.downloadStatus('Update file ready', 1);
+  
+  try {
+    await cfg.storageWrite({ ...version, file: blob });
+    logger.info(`Update.bin saved successfully for version ${version.version}`);
+    cfg.downloadStatus('Update file ready', 1);
+  } catch (error) {
+    logger.error('Failed to save update file:', error);
+    throw error;
+  }
 }

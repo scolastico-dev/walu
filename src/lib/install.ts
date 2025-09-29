@@ -3,6 +3,7 @@ import { registerCacheInterceptor } from "./worker";
 import { updateWalu } from "./update";
 import { prepareCache } from "./cache";
 import { reloadApp } from "./reload";
+import { logger } from "./logging";
 
 /**
  * Installs WALU by registering the cache interceptor, updating to the latest version,
@@ -14,10 +15,30 @@ import { reloadApp } from "./reload";
  * @throws {Error} If service worker registration, update, or cache preparation fails
  */
 export async function installWalu(cfg: WaluConfig): Promise<void> {
-  await registerCacheInterceptor(cfg);
-  await updateWalu(cfg).catch(err => console.warn('[WALU] Update skipped:', err));
-  const version = await cfg.storageRead();
-  if (!version) throw new Error('[WALU] No version installed after update.');
-  await prepareCache(cfg, version);
-  await reloadApp();
+  logger.info('Starting WALU installation...');
+  
+  try {
+    logger.info('Registering cache interceptor...');
+    await registerCacheInterceptor(cfg);
+    
+    logger.info('Checking for updates...');
+    await updateWalu(cfg).catch(err => logger.warn('Update skipped:', err));
+    
+    const version = await cfg.storageRead();
+    if (!version) {
+      logger.error('No version found after update attempt');
+      throw new Error('[WALU] No version installed after update.');
+    }
+    
+    logger.info(`Preparing cache for version ${version.version}...`);
+    await prepareCache(cfg, version);
+    
+    logger.info('Reloading application...');
+    await reloadApp();
+    
+    logger.info('WALU installation completed successfully');
+  } catch (error) {
+    logger.error('WALU installation failed:', error);
+    throw error;
+  }
 }

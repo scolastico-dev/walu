@@ -1,4 +1,5 @@
 import { IApiUrls, IStorageData } from "./types";
+import { logger } from "./logging";
 
 /**
  * Configuration class for WALU.
@@ -34,36 +35,55 @@ export class WaluConfig {
       downloadStatusFunction?: typeof WaluConfig.prototype.downloadStatusFunction,
     }
   ) {
+    logger.info('Initializing WALU configuration...');
     this.workerPath = config.workerPath;
     this.publicKey = config.publicKey;
+    
     if (typeof config.apiUrls === 'string') {
       const base = config.apiUrls.endsWith('/') ? config.apiUrls : config.apiUrls + '/';
       this.apiUrls = {
         versionJson: base + 'version.json',
         updateBin: base + 'update.bin',
       };
-    } else this.apiUrls = config.apiUrls;
+      logger.info(`API URLs configured from base: ${config.apiUrls}`);
+    } else {
+      this.apiUrls = config.apiUrls;
+      logger.info('API URLs configured from object');
+    }
+    
     this.storageReadFunction = config.storageReadFunction ?? (async () => {
       const res = localStorage.getItem("walu-storage");
       if (!res) return null;
       try {
         const parsed = JSON.parse(res);
-        if (!parsed.file || !parsed.version || !parsed.signature) return null;
+        if (!parsed.file || !parsed.version || !parsed.signature) {
+          logger.warn('Invalid storage data found, missing required fields');
+          return null;
+        }
         return {
           ...parsed,
           file: new Blob([new Uint8Array(Object.values(parsed.file.data))], { type: parsed.file.type }),
         };
-      } catch {
+      } catch (error) {
+        logger.warn('Failed to parse storage data:', error);
         return null;
       }
     });
+    
     this.storageWriteFunction = config.storageWriteFunction ?? (async (data) => {
-      localStorage.setItem("walu-storage", JSON.stringify({
-        ...data,
-        file: { data: Array.from(new Uint8Array(await data.file.arrayBuffer())), type: data.file.type },
-      }));
+      try {
+        localStorage.setItem("walu-storage", JSON.stringify({
+          ...data,
+          file: { data: Array.from(new Uint8Array(await data.file.arrayBuffer())), type: data.file.type },
+        }));
+      } catch (error) {
+        logger.error('Failed to write storage data:', error);
+        throw error;
+      }
     });
+    
     this.downloadStatusFunction = config.downloadStatusFunction ?? (async () => {});
+    logger.info('WALU configuration initialized successfully');
   }
 
   /**

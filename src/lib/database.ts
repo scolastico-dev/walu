@@ -1,3 +1,5 @@
+import { logger } from "./logging";
+
 /** The name of the IndexedDB database used by WALU */
 export const DB_NAME = 'walu';
 
@@ -26,21 +28,21 @@ export function openDb(): Promise<IDBDatabase> {
   }
 
   dbPromise = new Promise((resolve, reject) => {
-    console.log('[WALU] Opening IndexedDB connection...');
+    logger.info('Opening IndexedDB connection...');
     const request = indexedDB.open(DB_NAME, DB_VERSION);
 
     request.onerror = (event) => {
-      console.error('[WALU] IndexedDB error:', (event.target as IDBOpenDBRequest).error);
+      logger.error('IndexedDB error:', (event.target as IDBOpenDBRequest).error);
       dbPromise = null;
       reject('Error opening DB');
     };
 
     request.onsuccess = (event) => {
-      console.log('[WALU] IndexedDB connection successful.');
+      logger.info('IndexedDB connection successful.');
       const db = (event.target as IDBOpenDBRequest).result;
       // Close the connection if the tab is closed
       db.onclose = () => {
-        console.log('[WALU] IndexedDB connection closed.');
+        logger.info('IndexedDB connection closed.');
         dbPromise = null;
       };
       resolve(db);
@@ -48,13 +50,13 @@ export function openDb(): Promise<IDBDatabase> {
 
     request.onupgradeneeded = (event) => {
       const upgradeDb = (event.target as IDBOpenDBRequest).result;
-      console.log(`[WALU] Upgrading IndexedDB from version ${event.oldVersion} to ${event.newVersion}`);
+      logger.info(`Upgrading IndexedDB from version ${event.oldVersion} to ${event.newVersion}`);
       if (!upgradeDb.objectStoreNames.contains(CACHE_STORE)) {
-        console.log(`[WALU] Creating object store: ${CACHE_STORE}`);
+        logger.info(`Creating object store: ${CACHE_STORE}`);
         upgradeDb.createObjectStore(CACHE_STORE, { keyPath: 'path' });
       }
       if (!upgradeDb.objectStoreNames.contains(DOWNLOAD_STORE)) {
-        console.log(`[WALU] Creating object store: ${DOWNLOAD_STORE}`);
+        logger.info(`Creating object store: ${DOWNLOAD_STORE}`);
         // Use a simple number key for chunk order
         upgradeDb.createObjectStore(DOWNLOAD_STORE, { keyPath: 'id', autoIncrement: true });
       }
