@@ -1,6 +1,11 @@
 {
 	"name": "@scolastico-dev/walu",
-	"version": "0.0.0",
+	"author": {
+    "name": "Joschua Becker EDV",
+    "email": "support@scolasti.co",
+    "url": "https://scolasti.co"
+  },
+  "version": "0.0.0",
 	"license": "MIT",
 	"source": "src/index.ts",
 	"main": "dist/index.cjs",
@@ -9,7 +14,8 @@
 	"scripts": {
 		"build": "npm run build:lib && npm run build:doc",
 		"build:lib": "parcel build",
-    "build:doc": "typedoc --out docs src/index.ts"
+    "build:doc": "typedoc --out docs src/index.ts",
+    "prepare": "npm run build"
 	},
 	"bin": {
 		"walu": "./cli/main.sh"
@@ -21,6 +27,16 @@
 		"LICENSE",
 		"README.md"
 	],
+  "keywords": [
+    "walu",
+    "pwa",
+    "update",
+    "updater",
+    "service worker",
+    "caching",
+    "ota",
+    "capacitor"
+  ],
 	"dependencies": {
 		"archiver": "^7.0.1",
 		"crypto-js": "^4.2.0",
