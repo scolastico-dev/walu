@@ -34,6 +34,8 @@ export class WaluConfig {
       downloadStatusFunction?: typeof WaluConfig.prototype.downloadStatusFunction,
     }
   ) {
+    this.workerPath = config.workerPath;
+    this.publicKey = config.publicKey;
     if (typeof config.apiUrls === 'string') {
       const base = config.apiUrls.endsWith('/') ? config.apiUrls : config.apiUrls + '/';
       this.apiUrls = {
@@ -41,7 +43,6 @@ export class WaluConfig {
         updateBin: base + 'update.bin',
       };
     } else this.apiUrls = config.apiUrls;
-    this.publicKey = config.publicKey;
     this.storageReadFunction = config.storageReadFunction ?? (async () => {
       const res = localStorage.getItem("walu-storage");
       if (!res) return null;
