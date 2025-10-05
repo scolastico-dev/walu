@@ -16,6 +16,7 @@ export const STORAGE_STORE = 'storage';
 export const DB_VERSION = 2;
 
 let dbPromise: Promise<IDBDatabase> | null = null;
+let dbReady = false;
 
 /**
  * Opens a connection to the IndexedDB database and creates necessary object stores.
@@ -47,7 +48,9 @@ export function openDb(): Promise<IDBDatabase> {
       db.onclose = () => {
         logger.info('IndexedDB connection closed.');
         dbPromise = null;
+        dbReady = false;
       };
+      dbReady = true;
       resolve(db);
     };
 
@@ -80,6 +83,10 @@ export function openDb(): Promise<IDBDatabase> {
   });
 
   return dbPromise;
+}
+
+export function isDbReady(): boolean {
+  return dbReady;
 }
 
 /**

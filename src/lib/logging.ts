@@ -1,4 +1,4 @@
-import { openDb, readFromStore, STORAGE_STORE, writeToStore } from "./database";
+import { isDbReady, openDb, readFromStore, STORAGE_STORE, writeToStore } from "./database";
 import { IStorageData } from "./types";
 
 /**
@@ -14,6 +14,7 @@ const DEFAULT_LOG_LEVEL: LogLevel = 'INFO';
  * @returns The current log level
  */
 async function getLogLevel(): Promise<LogLevel> {
+  if (!isDbReady()) return DEFAULT_LOG_LEVEL;
   try {
     await openDb();
     const data = await readFromStore<IStorageData>(STORAGE_STORE, LOG_LEVEL_KEY);
