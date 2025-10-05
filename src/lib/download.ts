@@ -131,11 +131,12 @@ export async function downloadUpdateBin(cfg: WaluConfig, version: IVersionFile):
 
   const wordArray = CryptoJS.lib.WordArray.create(data.buffer as any);
   const fileHash = CryptoJS.SHA256(wordArray).toString(CryptoJS.enc.Hex);
+  logger.info(`Computed file hash: ${fileHash}`);
   const computedHash = CryptoJS.SHA256(fileHash + version.version).toString(CryptoJS.enc.Hex);
 
   if (computedHash !== version.hash) {
-      logger.error(`Hash verification failed: expected ${version.hash}, got ${computedHash}`);
-      throw new Error('[WALU] Hash mismatch. Downloaded file is corrupted.');
+    logger.error(`Hash verification failed: expected ${version.hash}, got ${computedHash}`);
+    throw new Error('[WALU] Hash mismatch. Downloaded file is corrupted.');
   }
   
   logger.info('Hash verification successful');
