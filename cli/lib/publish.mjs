@@ -101,7 +101,7 @@ export async function publishCmd(params, options) {
 
     const versionInfo = {
       version,
-      hash: hexHash,
+      hash: versionHexHash,
       signature,
     };
     writeFileSync(versionJsonPath, JSON.stringify(versionInfo, null, 2));
