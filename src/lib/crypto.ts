@@ -52,8 +52,7 @@ export async function checkIfValidSignature(cfg: WaluConfig, version: IVersionFi
     );
 
     const signatureBuffer = base64ToArrayBuffer(version.signature);
-    const calculatedHash = CryptoJS.SHA256(version.hash + version.version).toString();
-    const dataBuffer = new TextEncoder().encode(calculatedHash);
+    const dataBuffer = new TextEncoder().encode(version.hash);
     const isValid = await crypto.subtle.verify(
       {
         name: "RSASSA-PKCS1-v1_5",
