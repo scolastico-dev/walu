@@ -130,8 +130,8 @@ export async function downloadUpdateBin(cfg: WaluConfig, version: IVersionFile):
   const blob = new Blob([data as any]);
 
   const wordArray = CryptoJS.lib.WordArray.create(data.buffer as any);
-  const fileHash = CryptoJS.SHA256(wordArray).toString(CryptoJS.enc.Base64);
-  const computedHash = CryptoJS.SHA256(fileHash + version.version).toString(CryptoJS.enc.Base64);
+  const fileHash = CryptoJS.SHA256(wordArray).toString(CryptoJS.enc.Hex);
+  const computedHash = CryptoJS.SHA256(fileHash + version.version).toString(CryptoJS.enc.Hex);
 
   if (computedHash !== version.hash) {
       logger.error(`Hash verification failed: expected ${version.hash}, got ${computedHash}`);
