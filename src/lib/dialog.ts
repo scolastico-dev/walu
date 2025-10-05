@@ -61,16 +61,26 @@ export async function showInstallDialog(cfg: WaluConfig): Promise<void> {
   if (!zip.file('version.json')) throw new Error('[WALU] Invalid bundle: version.json not found.');
   if (!zip.file('update.bin')) throw new Error('[WALU] Invalid bundle: update.bin not found.');
   const versionFile = await zip.file('version.json').async('string');
+  const updateBinFile = await zip.file('update.bin').async('arraybuffer');
   const remoteVersion = JSON.parse(versionFile);
   logger.info('Checking signature...');
   await checkIfValidSignature(cfg, remoteVersion);
 
+  logger.info('Verifying file integrity...');
+  const wordArray = CryptoJS.lib.WordArray.create(updateBinFile);
+  const fileHash = CryptoJS.SHA256(wordArray).toString(CryptoJS.enc.Hex);
+  const computedHash = CryptoJS.SHA256(fileHash + remoteVersion.version).toString(CryptoJS.enc.Hex);
+
+  if (computedHash !== remoteVersion.hash) {
+    logger.error(`Hash verification failed: expected ${remoteVersion.hash}, got ${computedHash}`);
+    throw new Error('[WALU] Hash mismatch. Bundle file is corrupted.');
+  }
+  logger.info('Hash verification successful.');
+
   logger.info('Storing update file...');
   await cfg.storageWrite({
     ...remoteVersion,
-    file: new Blob([
-      await zip.file('update.bin').async('arraybuffer')
-    ], { type: 'application/octet-stream' }),
+    file: new Blob([updateBinFile], { type: 'application/octet-stream' }),
   });
   logger.info('Update to version', remoteVersion.version, 'installed successfully.');
 
