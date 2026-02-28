@@ -15,6 +15,7 @@ export class WaluConfig {
   protected readonly storageWriteFunction: (data: ICacheData) => Promise<void>;
   protected readonly downloadStatusFunction: (msg: string, progress: number) => Promise<void> = async () => {};
   protected readonly reloadMethod: ReloadMethod;
+  protected readonly cacheMissDocument?: string;
 
   /**
    * Creates a new WaluConfig instance with the specified configuration options.
@@ -36,6 +37,7 @@ export class WaluConfig {
       storageWriteFunction?: typeof WaluConfig.prototype.storageWriteFunction,
       downloadStatusFunction?: typeof WaluConfig.prototype.downloadStatusFunction,
       reloadMethod?: ReloadMethod,
+      cacheMissDocument?: string,
     }
   ) {
     logger.info('Initializing WALU configuration...');
@@ -96,6 +98,15 @@ export class WaluConfig {
     
     this.downloadStatusFunction = config.downloadStatusFunction ?? (async () => {});
     this.reloadMethod = config.reloadMethod ?? 'document.write';
+    this.cacheMissDocument = config.cacheMissDocument;
+
+    if (this.cacheMissDocument) {
+      writeToStore<IStorageData>(STORAGE_STORE, {
+        key: 'cacheMissDocument',
+        value: this.cacheMissDocument
+      }).catch(err => logger.error('Failed to store cacheMissDocument:', err));
+    }
+
     logger.info('WALU configuration initialized successfully');
   }
 
@@ -149,4 +160,11 @@ export class WaluConfig {
    * @returns The reload method as a 'document.write' or 'location.update' string literal
    */
   getReloadMethod(): ReloadMethod { return this.reloadMethod; }
+
+  /**
+   * Gets the optional document to serve when a cache miss occurs.
+   * 
+   * @returns The path to the cache miss document, if configured
+   */
+  getCacheMissDocument(): string | undefined { return this.cacheMissDocument; }
 }
