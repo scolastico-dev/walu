@@ -18,7 +18,7 @@ jobs:
       - name: Install node
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '24'
           registry-url: https://registry.npmjs.org
 
       - name: Install pnpm
@@ -32,6 +32,10 @@ jobs:
 
       - name: Build
         run: pnpm build
+
+      - name: Remove prepare script
+        run: |
+          jq 'del(.scripts.prepare)' package.json > temp.json && mv temp.json package.json
 
       - name: Publish package on NPM
         run: npm publish . --access public --no-git-checks --provenance
