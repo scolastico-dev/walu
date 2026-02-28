@@ -34,7 +34,7 @@ export async function installWalu(cfg: WaluConfig): Promise<void> {
     await registerCacheInterceptor(cfg);
 
     logger.info('Reloading application...');
-    await reloadApp();
+    await reloadApp(cfg);
 
     logger.info('WALU installation completed successfully');
   } catch (error) {

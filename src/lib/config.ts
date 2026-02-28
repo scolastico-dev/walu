@@ -1,4 +1,4 @@
-import { IApiUrls, ICacheData, IStorageData } from "./types";
+import { IApiUrls, ICacheData, IStorageData, ReloadMethod } from "./types";
 import { logger } from "./logging";
 import { STORAGE_STORE, writeToStore, readFromStore, openDb } from "./database";
 
@@ -14,6 +14,7 @@ export class WaluConfig {
   protected readonly storageReadFunction: () => Promise<ICacheData | null>;
   protected readonly storageWriteFunction: (data: ICacheData) => Promise<void>;
   protected readonly downloadStatusFunction: (msg: string, progress: number) => Promise<void> = async () => {};
+  protected readonly reloadMethod: ReloadMethod;
 
   /**
    * Creates a new WaluConfig instance with the specified configuration options.
@@ -34,6 +35,7 @@ export class WaluConfig {
       storageReadFunction?: typeof WaluConfig.prototype.storageReadFunction,
       storageWriteFunction?: typeof WaluConfig.prototype.storageWriteFunction,
       downloadStatusFunction?: typeof WaluConfig.prototype.downloadStatusFunction,
+      reloadMethod?: ReloadMethod,
     }
   ) {
     logger.info('Initializing WALU configuration...');
@@ -93,6 +95,7 @@ export class WaluConfig {
     });
     
     this.downloadStatusFunction = config.downloadStatusFunction ?? (async () => {});
+    this.reloadMethod = config.reloadMethod ?? 'document.write';
     logger.info('WALU configuration initialized successfully');
   }
 
@@ -139,4 +142,11 @@ export class WaluConfig {
    * @param progress - Progress value between 0 and 1
    */
   downloadStatus(msg: string, progress: number): Promise<void> { return this.downloadStatusFunction(msg, progress); }
+
+  /**
+   * Gets the reload method used after updates.
+   * 
+   * @returns The reload method as a 'document.write' or 'location.update' string literal
+   */
+  getReloadMethod(): ReloadMethod { return this.reloadMethod; }
 }

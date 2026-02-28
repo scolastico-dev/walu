@@ -91,5 +91,5 @@ export async function showInstallDialog(cfg: WaluConfig): Promise<void> {
   logger.info('Registering cache interceptor...');
   await registerCacheInterceptor(cfg);
   logger.info('Installation complete.');
-  await reloadApp();
+  await reloadApp(cfg);
 }

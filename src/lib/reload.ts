@@ -1,8 +1,42 @@
 import { logger } from "./logging";
+import type { WaluConfig } from "./config";
 
-export async function reloadApp(): Promise<void> {
+/**
+ * Reloads the application using the method specified in the configuration.
+ * 
+ * @param cfg - The optional WALU configuration object
+ * @returns Promise that resolves if the reload is initiated (or if document.write finish)
+ */
+export async function reloadApp(cfg?: WaluConfig): Promise<void> {
   logger.info('Starting application reload...');
-  
+  const reloadMethod = cfg ? cfg.getReloadMethod() : 'document.write';
+
+  if (reloadMethod === 'location.update') {
+    try {
+      // 1. Ensure the Service Worker is actively controlling the page
+      if ('serviceWorker' in navigator && !navigator.serviceWorker.controller) {
+        logger.info('Waiting for Service Worker to take control...');
+        await new Promise<void>((resolve) => {
+          navigator.serviceWorker.addEventListener('controllerchange', () => {
+            resolve();
+          }, { once: true });
+        });
+      }
+
+      logger.info('Service Worker is controlling the page. Navigating to apply update...');
+      
+      // 2. Use location.href instead of location.reload()
+      // This triggers a standard navigation request (which the SW heavily intercepts) 
+      // rather than a "reload" action which some browsers handle weirdly with caches.
+      window.location.href = window.location.pathname + window.location.search;
+    } catch (error) {
+      logger.error('Application reload failed:', error);
+      throw error;
+    }
+    return;
+  }
+
+  // Default: document.write
   try {
     const index = await fetch('/index.html', { cache: 'no-store' });
     if (!index.ok) {

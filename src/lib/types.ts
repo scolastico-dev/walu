@@ -46,6 +46,9 @@ export interface ICacheRecord {
 /**
  * Configuration object for API endpoints.
  * Defines the URLs used to fetch version information and update files.
+ * **Note: Some servers or cdn's like to cache small static json files, this results in
+ * hash mismatches. To prevent this, we recommend adding a query parameter with a timestamp or
+ * random string to the versionJson and updateBin urls. For example: https://example.com/version.json?t=1234567890**
  */
 export interface IApiUrls {
   /** URL to the version.json endpoint */
@@ -62,3 +65,10 @@ export interface IDownloadChunk {
   id?: number;
   data: Uint8Array;
 }
+
+/**
+ * Defines the method used to reload the application after an update.
+ * - 'document.write': Replaces the entire document content with fresh index.html
+ * - 'location.update': Triggers a standard navigation to the current URL
+ */
+export type ReloadMethod = 'document.write' | 'location.update';
