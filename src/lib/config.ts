@@ -61,7 +61,7 @@ export class WaluConfig {
       if (!version || !file) return null;
       try {
         const parsed = JSON.parse(version.value as string);
-        if (!parsed.file || !parsed.version || !parsed.signature) {
+        if (!parsed.hash || !parsed.version || !parsed.signature) {
           logger.warn('Invalid storage data found, missing required fields');
           return null;
         }
