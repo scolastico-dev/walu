@@ -9,21 +9,27 @@ import { logger } from "./logging";
  * the update if a newer version is available. Development versions are skipped.
  * 
  * @param cfg - The WALU configuration object containing API endpoints and storage functions
- * @returns Promise that resolves when the update check and download (if needed) are complete
+ * @returns Promise that resolves when the update check and download (if needed) are complete, with an boolean indicating if an update was installed.
  * @throws {Error} If version download, signature verification, or file download fails
  */
-export async function updateWalu(cfg: WaluConfig): Promise<void> {
+export async function updateWalu(cfg: WaluConfig): Promise<boolean> {
   logger.info('Checking for updates...');
   const localVersion = await cfg.storageRead();
   logger.info('Current version:', localVersion ? localVersion.version : 'none');
-  if (localVersion && localVersion.version === 'IN-DEV') return;
+
+  if (localVersion && localVersion.version === 'IN-DEV') return false;
+
   const remoteVersion = await downloadVersionJson(cfg);
   logger.info('Remote version:', remoteVersion.version);
-  if (remoteVersion.version === 'IN-DEV') return;
-  if (localVersion && localVersion.version === remoteVersion.version) return;
+
+  if (remoteVersion.version === 'IN-DEV') return false;
+  if (localVersion && localVersion.version === remoteVersion.version) return false;
+
   logger.info('Version mismatch. Checking signature...');
   await checkIfValidSignature(cfg, remoteVersion);
   logger.info('Signature is valid. Starting download...');
   await downloadUpdateBin(cfg, remoteVersion);
   logger.info('Update to version', remoteVersion.version, 'installed successfully.');
+
+  return true;
 }
